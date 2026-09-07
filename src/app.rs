@@ -227,6 +227,11 @@ impl App {
                 _ => RepeatMode::Off,
             };
         }
+        // A menu choice outranks the config. Must precede `Graphics::resolve`.
+        let mut cfg = cfg;
+        if let Some(mode) = crate::config::CoverMode::from_name(&state.cover_mode) {
+            cfg.cover_mode = mode;
+        }
         let cfg_accent = cfg.accent_color;
         // First run falls back to the config's default; after that the
         // remembered toggle wins.
@@ -321,6 +326,7 @@ impl App {
             },
             cover_visible: self.cover_visible,
             theme: self.theme.clone(),
+            cover_mode: self.cfg.cover_mode.name().to_string(),
             shuffle: self.queue.shuffle,
             repeat: match self.queue.repeat {
                 RepeatMode::All => "all".into(),

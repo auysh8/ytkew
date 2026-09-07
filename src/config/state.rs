@@ -22,6 +22,8 @@ pub struct State {
     pub cover_visible: bool,
     /// Theme chosen at runtime with `t`. Empty means "use the config".
     pub theme: String,
+    /// Renderer chosen from the menu. Empty means "use the config".
+    pub cover_mode: String,
 }
 
 impl Default for State {
@@ -33,6 +35,7 @@ impl Default for State {
             cover_cell: [0, 0],
             cover_visible: true,
             theme: String::new(),
+            cover_mode: String::new(),
         }
     }
 }
@@ -93,6 +96,7 @@ mod tests {
             cover_cell: [12, 24],
             cover_visible: false,
             theme: "nord".into(),
+            cover_mode: "sixel".into(),
         };
         saved.save(&dir).unwrap();
         let back = State::load(&dir, &cfg);
@@ -102,7 +106,35 @@ mod tests {
         assert_eq!(back.cover_cell, [12, 24], "tuned cell size must persist");
         assert!(!back.cover_visible, "the b toggle must persist");
         assert_eq!(back.theme, "nord", "the chosen theme must persist");
+        assert_eq!(
+            back.cover_mode, "sixel",
+            "a renderer chosen from the menu must persist"
+        );
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn an_unset_renderer_leaves_the_config_in_charge() {
+        // A first run, or a state.toml written before this field existed.
+        use crate::config::CoverMode;
+        assert_eq!(CoverMode::from_name(""), None);
+        assert_eq!(CoverMode::from_name("nonsense"), None);
+        assert_eq!(State::default().cover_mode, "");
+    }
+
+    #[test]
+    fn every_renderer_name_round_trips_through_its_parser() {
+        // `name` is what gets saved; a mismatch reverts the choice.
+        use crate::config::CoverMode;
+        for mode in [
+            CoverMode::Auto,
+            CoverMode::Kitty,
+            CoverMode::Sixel,
+            CoverMode::Blocks,
+            CoverMode::Off,
+        ] {
+            assert_eq!(CoverMode::from_name(mode.name()), Some(mode), "{mode:?}");
+        }
     }
 
     #[test]
