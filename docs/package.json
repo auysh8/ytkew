@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node api.js && astro dev",
-    "build": "node api.js && astro build",
+    "dev": "node init && astro dev",
+    "build": "node init && astro build",
     "preview": "astro preview"
   },
   "dependencies": {
